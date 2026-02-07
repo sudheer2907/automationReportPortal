@@ -9,10 +9,13 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const { protocol, hostname } = window.location;
+  const API_BASE_URL = `${protocol}//${hostname}:5000`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
       onLogin(res.data.token, res.data.role, username);
       navigate('/dashboard');
     } catch (err) {

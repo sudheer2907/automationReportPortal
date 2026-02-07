@@ -7,8 +7,11 @@ export default function TestRunDetails() {
   const [results, setResults] = useState([]);
   const [expanded, setExpanded] = useState({});
 
+  const { protocol, hostname } = window.location;
+  const API_BASE_URL = `${protocol}//${hostname}:5000`;
+
   useEffect(() => {
-    fetch(`http://localhost:5000/api/results`)
+    fetch(`${API_BASE_URL}/api/results`)
       .then(res => res.json())
       .then(data => {
         // Decode params and match with original data

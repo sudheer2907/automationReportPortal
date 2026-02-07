@@ -9,10 +9,13 @@ export default function Register() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  const { protocol, hostname } = window.location;
+  const API_BASE_URL = `${protocol}//${hostname}:5000`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/auth/register', { username, password, role });
+      await axios.post(`${API_BASE_URL}/api/auth/register`, { username, password, role });
       setMessage('User registered!');
       setError('');
     } catch (err) {

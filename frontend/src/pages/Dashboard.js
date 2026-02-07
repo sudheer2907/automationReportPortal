@@ -117,9 +117,12 @@ export default function Dashboard({ role }) {
   const [selectedProject, setSelectedProject] = useState('All');
   const [trendMode, setTrendMode] = useState('date'); // 'date' or 'weekly'
 
+  const { protocol, hostname } = window.location;
+  const API_BASE_URL = `${protocol}//${hostname}:5000`;
+
   const fetchResults = () => {
     setLoading(true);
-    axios.get('http://localhost:5000/api/results')
+    axios.get(`${API_BASE_URL}/api/results`)
       .then(res => {
         setResults(res.data);
         setLoading(false);
