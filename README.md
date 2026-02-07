@@ -50,9 +50,10 @@ A full-stack web application for displaying automation test results with user au
 
 ## Make the server up using Docker
 ```sh
+
 docker-compose up --build
 ```
-
+To make db up -> docker compose -f db.yml up
 ## Usage
 - Register a user (admin can register new users)
 - Login to view the dashboard
