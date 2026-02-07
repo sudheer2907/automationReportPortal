@@ -42,7 +42,10 @@ A full-stack web application for displaying automation test results with user au
    ```sh
    npm install
    ```
-3. Start the React development server:
+3. Build the application using:
+      npm run build
+   
+4. Start the React development server:
    ```sh
    npm start
    ```
@@ -50,10 +53,12 @@ A full-stack web application for displaying automation test results with user au
 
 ## Make the server up using Docker
 ```sh
-
 docker-compose up --build
 ```
-To make db up -> docker compose -f db.yml up
+
+## To make only db up and running
+docker compose -f db.yml up
+
 ## Usage
 - Register a user (admin can register new users)
 - Login to view the dashboard
