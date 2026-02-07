@@ -52,9 +52,10 @@ const groupResultsByRunId = (results) => {
     }
     const project = r.framework || 'Unknown';
     const key = `${runLabel}__${project}`;
-    if (!grouped[key]) grouped[key] = { date: dateStr, project, passed: 0, failed: 0 };
+    if (!grouped[key]) grouped[key] = { date: dateStr, project, passed: 0, failed: 0, skipped: 0 };
     if (r.status === 'passed') grouped[key].passed += 1;
     if (r.status === 'failed') grouped[key].failed += 1;
+    if (r.status === 'skipped') grouped[key].skipped += 1;
   });
   return Object.values(grouped);
 };
@@ -169,29 +170,28 @@ export default function Dashboard({ role }) {
             <MenuItem value="weekly">Weekly Wise</MenuItem>
           </Select>
         </FormControl>
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel id="project-filter-label">Select Project</InputLabel>
+          <Select
+            labelId="project-filter-label"
+            value={selectedProject}
+            label="Select Team"
+            onChange={e => setSelectedProject(e.target.value)}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {projectNames.map((name, idx) => (
+              <MenuItem key={idx} value={name}>{name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button variant="outlined" sx={{ height: 40 }} onClick={fetchResults}>Refresh</Button>
       </div>
       <TrendChart groupedResults={groupedTrendResults} trendMode={trendMode} chartType="automationCount" />
       <TrendChart groupedResults={groupedPassFailResults} trendMode={trendMode} chartType="passFail" />
       <Paper elevation={3} sx={{ p: 6, mt: 8 }}>
         {/* <Typography variant="h6" align="left" gutterBottom>Date Wise Test Results</Typography> */}
-        <Typography variant="h6" align="left" gutterBottom sx={{ fontSize: '1rem' }}>Date Wise Test Results</Typography>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <FormControl sx={{ minWidth: 200, mb: 2 }} size="small">
-            <InputLabel id="project-filter-label">Select Project</InputLabel>
-            <Select
-              labelId="project-filter-label"
-              value={selectedProject}
-              label="Select Team"
-              onChange={e => setSelectedProject(e.target.value)}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {projectNames.map((name, idx) => (
-                <MenuItem key={idx} value={name}>{name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button variant="outlined" sx={{ mb: 2, height: 40 }} onClick={fetchResults}>Refresh</Button>
-        </div>
+        <Typography variant="h6" align="left" gutterBottom sx={{ fontSize: '1rem' }}>Date Wise Execution Details</Typography>
+        {/* Project dropdown and refresh button moved above for improved layout */}
         <Typography variant="body2" sx={{ mb: 2, color: 'gray' }}>Showing last 30 Executions Records</Typography>
         <TableContainer component={Paper} sx={{ mt: 4 }}>
           <Table>
@@ -201,6 +201,7 @@ export default function Dashboard({ role }) {
                 <TableCell>Project Name</TableCell>
                 <TableCell>Pass</TableCell>
                 <TableCell>Fail</TableCell>
+                <TableCell>Skipped</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell>Pass %</TableCell>
                 <TableCell>Reports</TableCell>
@@ -208,7 +209,7 @@ export default function Dashboard({ role }) {
             </TableHead>
             <TableBody>
               {groupedResults.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => {
-                const total = row.passed + row.failed;
+                const total = row.passed + row.failed + row.skipped;
                 const passPercent = total > 0 ? ((row.passed / total) * 100).toFixed(1) : '0.0';
                 return (
                   <TableRow key={idx} sx={{ height: 28 }}>
@@ -216,6 +217,7 @@ export default function Dashboard({ role }) {
                     <TableCell sx={{ py: 0.5 }}>{row.project}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{row.passed}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{row.failed}</TableCell>
+                    <TableCell sx={{ py: 0.5 }}>{row.skipped}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{total}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{passPercent}%</TableCell>
                     <TableCell sx={{ py: 0.5 }}>

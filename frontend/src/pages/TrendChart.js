@@ -10,8 +10,9 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
 export default function TrendChart({ groupedResults, trendMode, chartType }) {
   // Show last 30 groups
@@ -39,6 +40,19 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
             trendMode === 'weekly'
               ? 'Automation Count Trend (Weekly, Mon–Fri, Last 30 Weeks)'
               : 'Automation Count Trend (Daily, Last 30 Days)'
+        },
+        datalabels: {
+          display: true,
+          color: '#222',
+          anchor: 'end',
+          align: 'top',
+          font: {
+            weight: 'bold',
+            size: 14
+          },
+          formatter: function(value) {
+            return value;
+          }
         }
       },
       scales: {
@@ -49,7 +63,17 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
   } else {
     // Pass/Fail Trend: each run is a separate bar, grouped by date/week
     data = {
-      labels: sorted.map(r => `${r.label}\n${r.run_id}`),
+      labels: sorted.map(r => {
+        // If run_id is a timestamp, format as IST date/time
+        let formattedLabel = r.label;
+        if (/^\d{13,}$/.test(r.run_id)) {
+          const date = new Date(Number(r.run_id));
+          // Format as IST (India Standard Time)
+          const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+          formattedLabel = istDate.toLocaleString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
+        }
+        return formattedLabel;
+      }),
       datasets: [
         {
           label: 'Passed',
