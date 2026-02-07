@@ -43,16 +43,19 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
         },
         datalabels: {
           display: true,
-          color: '#222',
-          anchor: 'end',
-          align: 'top',
+          color: '#fff',
+          anchor: 'center',
+          align: 'center',
           font: {
             weight: 'bold',
-            size: 14
+            size: 16
           },
           formatter: function(value) {
             return value;
-          }
+          },
+          backgroundColor: 'rgba(34,197,94,0.7)',
+          borderRadius: 4,
+          padding: 6
         }
       },
       scales: {
