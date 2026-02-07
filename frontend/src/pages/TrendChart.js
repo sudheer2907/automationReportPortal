@@ -71,9 +71,14 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
         let formattedLabel = r.label;
         if (/^\d{13,}$/.test(r.run_id)) {
           const date = new Date(Number(r.run_id));
-          // Format as IST (India Standard Time)
-          const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-          formattedLabel = istDate.toLocaleString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
+          formattedLabel = date.toLocaleString('en-IN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Kolkata'
+          });
         }
         return formattedLabel;
       }),
@@ -106,7 +111,16 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
       },
       scales: {
         x: { stacked: true },
-        y: { stacked: true, beginAtZero: true }
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return Number.isInteger(value) ? value : '';
+            },
+            stepSize: 1
+          }
+        }
       }
     };
   }
