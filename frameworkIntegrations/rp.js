@@ -7,6 +7,7 @@ function stripAnsi(str) {
 
 function formatDetailedError(error) {
   let msg = error.message || '';
+
   if (error.expected !== undefined && error.actual !== undefined) {
     msg += `\nExpected: ${JSON.stringify(error.expected, null, 2)}\nReceived: ${JSON.stringify(error.actual, null, 2)}`;
   }
@@ -29,12 +30,18 @@ class RunIdReporter {
     this.htmlReportPath = path.resolve(process.cwd(), 'playwright-report', 'index.html');
   }
 
+  normalizeStatus(status) {
+    if (status === 'timedOut') return 'failed';
+    if (status === 'interrupted') return 'skipped';
+    return status;
+  }
+
   onTestEnd(test, result) {
     this.results.push({
-      framework: 'playwright',
+      framework: 'qa-playwright',
       suite: test.parent ? test.parent.title : '',
       testName: test.title,
-      status: result.status,
+      status: this.normalizeStatus(result.status),
       duration: result.duration,
       errorMessage: result.status === 'failed' && result.error ? formatDetailedError(result.error) : null,
       run_id: this.run_id,
@@ -51,7 +58,13 @@ class RunIdReporter {
       console.log('Test results submitted with run_id:', this.run_id);
       console.log('HTML report path:', this.htmlReportPath);
     } catch (err) {
-      console.error('Failed to submit test results:', err.message);
+      const responseData = err?.response?.data;
+      const responseStatus = err?.response?.status;
+      if (responseData || responseStatus) {
+        console.error('Failed to submit test results:', responseStatus, responseData);
+      } else {
+        console.error('Failed to submit test results:', err.message);
+      }
     }
   }
 }
