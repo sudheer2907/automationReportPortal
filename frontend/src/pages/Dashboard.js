@@ -20,11 +20,12 @@ function getPassFailTrend(results, mode) {
     // Find or create run entry for this run_id
     let runEntry = groupMap[groupKey].find(e => e.run_id === runLabel);
     if (!runEntry) {
-      runEntry = { run_id: runLabel, label: groupKey, passed: 0, failed: 0 };
+      runEntry = { run_id: runLabel, label: groupKey, passed: 0, failed: 0, skipped: 0 };
       groupMap[groupKey].push(runEntry);
     }
     if (r.status === 'passed') runEntry.passed += 1;
     if (r.status === 'failed') runEntry.failed += 1;
+    if (r.status === 'skipped') runEntry.skipped += 1;
   });
   // Flatten to array, sort by group label (date/week) and then by run_id
   return Object.values(groupMap)
@@ -57,7 +58,19 @@ const groupResultsByRunId = (results) => {
     if (r.status === 'failed') grouped[key].failed += 1;
     if (r.status === 'skipped') grouped[key].skipped += 1;
   });
-  return Object.values(grouped);
+  // Sort by run_id in descending order (latest first)
+  return Object.entries(grouped)
+    .sort((a, b) => {
+      const runIdA = a[0].split('__')[0];
+      const runIdB = b[0].split('__')[0];
+      // If run_id is a timestamp, compare numerically
+      if (/^\d{13,}$/.test(runIdA) && /^\d{13,}$/.test(runIdB)) {
+        return Number(runIdB) - Number(runIdA);
+      }
+      // Otherwise compare as strings
+      return runIdB.localeCompare(runIdA);
+    })
+    .map(([_, value]) => value);
 };
 
 // Helper to get week label (Monday to Friday)

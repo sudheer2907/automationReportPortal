@@ -51,3 +51,21 @@ exports.getResults = async (req, res) => {
   }
 };
 
+exports.deleteByRunId = async (req, res) => {
+  try {
+    const { run_id } = req.params;
+    if (!run_id) {
+      return res.status(400).json({ message: 'run_id is required' });
+    }
+    const deletedCount = await TestResult.destroy({
+      where: { run_id }
+    });
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: 'No test results found with this run_id' });
+    }
+    res.json({ message: `Deleted ${deletedCount} test result(s) for run_id: ${run_id}`, deletedCount });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+

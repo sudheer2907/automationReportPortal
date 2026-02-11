@@ -94,6 +94,12 @@ export default function TrendChart({ groupedResults, trendMode, chartType }) {
           data: sorted.map(r => r.failed),
           backgroundColor: 'rgba(239,68,68,0.7)',
           barThickness: 10
+        },
+        {
+          label: 'Skipped',
+          data: sorted.map(r => r.skipped || 0),
+          backgroundColor: 'rgba(251,191,36,0.7)',
+          barThickness: 10
         }
       ]
     };
