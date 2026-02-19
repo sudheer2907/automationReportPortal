@@ -54,6 +54,8 @@ Request body:
   "duration": 1.23,
   "errorMessage": null,
   "timestamp": "2026-01-20T17:00:00Z",
+  "run_id": "1737388800000",
+  "executionTime": "5m 30s",
   "extra": { "browser": "chrome", "env": "staging" }
 }
 ```
@@ -65,6 +67,8 @@ Request body:
 - `duration` (float, optional): Duration in seconds
 - `errorMessage` (string, optional): Error message if failed
 - `timestamp` (string, optional): ISO timestamp
+- `run_id` (string, required): Unique identifier for the test run
+- `executionTime` (string, optional): Human-readable execution time (e.g., "5m 30s", "2h 15m")
 - `extra` (object, optional): Any additional metadata
 
 ## Next Steps

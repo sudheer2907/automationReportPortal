@@ -34,6 +34,10 @@ const TestResult = sequelize.define('TestResult', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  executionTime: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   extra: {
     type: DataTypes.JSON,
     allowNull: true
@@ -41,6 +45,11 @@ const TestResult = sequelize.define('TestResult', {
   htmlReportPath: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  screenshots: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
   }
 }, { timestamps: true });
 

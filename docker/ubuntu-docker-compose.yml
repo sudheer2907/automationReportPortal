@@ -20,7 +20,7 @@ services:
       retries: 5
 
   backend:
-    image: sudheerk2907/reportportal:backend
+    image: grasrvc001/reportportal:backend
     container_name: reportportal-backend
     restart: always
     environment:
@@ -36,18 +36,17 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app
+      - screenshots_data:/app/uploads
 
   frontend:
-    image: sudheerk2907/reportportal:frontend
+    image: grasrvc001/reportportal:frontend
     container_name: reportportal-frontend
     restart: always
     ports:
       - "3000:3000"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
 
 volumes:
   db_data:
+  screenshots_data:

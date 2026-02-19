@@ -53,7 +53,7 @@ const groupResultsByRunId = (results) => {
     }
     const project = r.framework || 'Unknown';
     const key = `${runLabel}__${project}`;
-    if (!grouped[key]) grouped[key] = { date: dateStr, project, passed: 0, failed: 0, skipped: 0 };
+    if (!grouped[key]) grouped[key] = { date: dateStr, project, passed: 0, failed: 0, skipped: 0, executionTime: r.executionTime || 'N/A' };
     if (r.status === 'passed') grouped[key].passed += 1;
     if (r.status === 'failed') grouped[key].failed += 1;
     if (r.status === 'skipped') grouped[key].skipped += 1;
@@ -217,6 +217,7 @@ export default function Dashboard({ role }) {
                 <TableCell>Skipped</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell>Pass %</TableCell>
+                <TableCell>Execution Time</TableCell>
                 <TableCell>Reports</TableCell>
               </TableRow>
             </TableHead>
@@ -233,6 +234,7 @@ export default function Dashboard({ role }) {
                     <TableCell sx={{ py: 0.5 }}>{row.skipped}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{total}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>{passPercent}%</TableCell>
+                    <TableCell sx={{ py: 0.5 }}>{row.executionTime}</TableCell>
                     <TableCell sx={{ py: 0.5 }}>
                       <Button variant="outlined" size="small" component={RouterLink} to={`/testrun/${encodeURIComponent(row.date)}/${encodeURIComponent(row.project)}`}>View Details</Button>
                     </TableCell>

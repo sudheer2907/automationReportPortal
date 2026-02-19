@@ -1,5 +1,6 @@
 const TestResult = require('../models/TestResult');
 const { Op } = require('sequelize');
+const uploadController = require('./uploadController');
 
 // Expects run_id to be provided in req.body for each test suite run
 exports.submitResult = async (req, res) => {
@@ -7,10 +8,11 @@ exports.submitResult = async (req, res) => {
     if (!req.body.run_id) {
       return res.status(400).json({ message: 'run_id is required' });
     }
-    // Accept htmlReportPath in the request body
+    // Accept htmlReportPath and screenshots in the request body
     const result = await TestResult.create({
       ...req.body,
-      htmlReportPath: req.body.htmlReportPath || null
+      htmlReportPath: req.body.htmlReportPath || null,
+      screenshots: req.body.screenshots || null
     });
     // After saving, keep only the last 30 unique run_id per project (framework)
     if (result.framework) {
@@ -35,6 +37,9 @@ exports.submitResult = async (req, res) => {
           run_id: { [Op.notIn]: keepRunIds }
         }
       });
+      
+      // Also cleanup old screenshot files
+      await uploadController.cleanupOldScreenshots(result.framework);
     }
     res.status(201).json({ message: 'Test result saved', id: result.id, htmlReportPath: result.htmlReportPath });
   } catch (err) {
