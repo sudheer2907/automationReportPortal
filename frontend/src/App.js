@@ -65,7 +65,7 @@ function App() {
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={role === 'admin' ? <Register /> : <Navigate to="/login" />} />
           <Route path="/dashboard" element={token ? <Dashboard role={role} /> : <Navigate to="/login" />} />
-<Route path="/testrun/:runId/:project" element={<TestRunDetails />} />
+          <Route path="/testrun/:runId/:project" element={token ? <TestRunDetails role={role} token={token} /> : <Navigate to="/login" />} />
           <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
         </Routes>
       </Router>

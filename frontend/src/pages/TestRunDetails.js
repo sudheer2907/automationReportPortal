@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, Paper, Typography, Box, List, ListItem, ListItemText, Button, Collapse, Divider, ImageList, ImageListItem } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Paper, Typography, Box, List, ListItem, ListItemText, Button, Collapse, Divider, ImageList, ImageListItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ImageIcon from '@mui/icons-material/Image';
+import GetAppIcon from '@mui/icons-material/GetApp';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { downloadTestResultsAsExcel } from './excelExporter';
 
-export default function TestRunDetails() {
+export default function TestRunDetails({ role, token }) {
   const { runId, project } = useParams();
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [expanded, setExpanded] = useState({});
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const effectiveRole = role || localStorage.getItem('role');
+  const authToken = token || localStorage.getItem('token');
+  const isAdmin = effectiveRole === 'admin';
 
   const { protocol, hostname } = window.location;
   const API_BASE_URL = `${protocol}//${hostname}:5000`;
@@ -37,11 +46,88 @@ export default function TestRunDetails() {
     setExpanded(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  const handleDeleteClick = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setOpenDeleteDialog(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      if (!isAdmin) {
+        alert('Only admin users can delete executions.');
+        setOpenDeleteDialog(false);
+        return;
+      }
+
+      if (!authToken) {
+        alert('Your session has expired. Please login again.');
+        setOpenDeleteDialog(false);
+        navigate('/login');
+        return;
+      }
+
+      const actualRunId = results.length > 0 ? results[0].run_id : runId;
+
+      const response = await fetch(`${API_BASE_URL}/api/results/run/${encodeURIComponent(actualRunId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Success! ${data.deletedCount} test result(s) deleted.`);
+        setOpenDeleteDialog(false);
+        navigate('/dashboard');
+      } else if (response.status === 401) {
+        alert('Session invalid or expired. Please login again.');
+        setOpenDeleteDialog(false);
+        navigate('/login');
+      } else if (response.status === 403) {
+        alert('Forbidden: Only admins can delete executions');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to delete execution'}`);
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 6 }}>
         <Typography variant="h5" gutterBottom>Test Run Details</Typography>
         <Typography variant="subtitle1" gutterBottom>Project: {project || 'Unknown'} | Run ID: {runId}</Typography>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Button 
+            variant="contained" 
+            startIcon={<GetAppIcon />}
+            onClick={() => downloadTestResultsAsExcel(results, runId, project)}
+            sx={{ backgroundColor: '#4CAF50', '&:hover': { backgroundColor: '#45a049' } }}
+          >
+            Download as Excel
+          </Button>
+          {isAdmin && (
+            <Button 
+              variant="contained" 
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleDeleteClick}
+              disabled={results.length === 0}
+            >
+              Delete Execution
+            </Button>
+          )}
+        </Box>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6">Passed Test Cases</Typography>
         <List dense>
@@ -128,6 +214,40 @@ export default function TestRunDetails() {
           ))}
         </List>
       </Paper>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Delete Test Execution
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this entire test execution ({runId})? 
+            <br /><br />
+            This will permanently remove all {results.length} test results from the database.
+            <br /><br />
+            <strong>This action cannot be undone.</strong>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
